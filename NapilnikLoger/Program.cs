@@ -5,56 +5,89 @@ namespace NapilnikLoger
 {
     interface ILogger
     {
-        void WriteError(string message);
+        void Find(string message);
     }
 
     class Program
     {
         static void Main(string[] args)
         {
-            Pathfinder pathfinder = new Pathfinder(new FileLogWritter());
-            pathfinder.WriteError("s");
+            string message = "Message";
+            Pathfinder writterInConsole = new ConsoleLogWritter();
+            Pathfinder writterInFile = new FileLogWritter();
+            Pathfinder writterInFileOnFridays = new SecureConsoleLogWritter();
+            Pathfinder writterInConsoleOnFridays = new SecureFileLogWritter();
+            Pathfinder writterInFileAndConsoleAndOnFridays = new ConsoleAndFileLogWritter();
+            writterInConsole.Find(message);
+            writterInFile.Find(message);
+            writterInFileOnFridays.Find(message);
+            writterInConsoleOnFridays.Find(message);
+            writterInFileAndConsoleAndOnFridays.Find(message);
         }
     }
 
-    class ConsoleLogWritter : ILogger
+    public abstract class Pathfinder : ILogger
     {
-        public virtual void WriteError(string message)
+        public void Find(string message)
         {
-            Console.WriteLine(message);
+            if (message != null)
+                WriteError(message);
         }
+
+        protected virtual void WriteError(string message) { }
+
+        public void WritterConsole(string message) { Console.WriteLine(message); }
+
+        public void WritterFile(string message) { File.WriteAllText("log.txt", message); }
+
     }
 
-    class FileLogWritter : ILogger
+    class ConsoleLogWritter : Pathfinder
     {
-        public virtual void WriteError(string message)
+        protected override void WriteError(string message)
         {
-            File.WriteAllText("log.txt", message);
+            WritterConsole(message);
         }
     }
 
-    class SecureConsoleLogWritter : ConsoleLogWritter
+    class FileLogWritter : Pathfinder
     {
-        public override void WriteError(string message)
+        protected override void WriteError(string message)
+        {
+            WritterFile(message);
+        }
+    }
+
+    class SecureConsoleLogWritter : Pathfinder
+    {
+        protected override void WriteError(string message)
         {
             if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
             {
-                base.WriteError(message);
+                WritterConsole(message);
             }
         }
     }
 
-    class Pathfinder : ILogger
+    class SecureFileLogWritter : Pathfinder
     {
-        protected ILogger _logger;
-
-        public Pathfinder(ILogger logger)
+        protected override void WriteError(string message)
         {
-            _logger = logger;
+            if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+            {
+                WritterFile(message);
+            }
         }
-        public void WriteError(string message)
-        {
+    }
 
+    class ConsoleAndFileLogWritter : Pathfinder
+    {
+        protected override void WriteError(string message)
+        {
+            WritterConsole(message);
+
+            if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+                WritterFile(message);
         }
     }
 }
