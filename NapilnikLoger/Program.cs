@@ -3,11 +3,6 @@ using System.IO;
 
 namespace NapilnikLoger
 {
-    interface ILogger
-    {
-        void Find(string message);
-    }
-
     class Program
     {
         static void Main(string[] args)
@@ -26,7 +21,7 @@ namespace NapilnikLoger
         }
     }
 
-    public abstract class Pathfinder : ILogger
+    public abstract class Pathfinder
     {
         public void Find(string message)
         {
